@@ -1,17 +1,6 @@
 import os
-from datetime import datetime
 import logging
-
-
-def create_folder(path):
-    if not os.path.exists(path):
-        print("Creating Dirs: {}".format(path))
-        os.makedirs(path)
-
-
-def get_timestamp():
-    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-    return timestamp
+from others import create_folder
 
 
 def create_logger(filepath, logger_name=None):
