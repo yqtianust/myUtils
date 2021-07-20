@@ -2,10 +2,14 @@ import os
 from datetime import datetime
 
 
-def create_folder(path):
+def create_folder(path, safe=True):
     if not os.path.exists(path):
         print("Creating Dirs: {}".format(path))
         os.makedirs(path)
+    else:
+        print("Dirs: {} Exists".format(path))
+        if safe:
+            assert False
 
 
 def get_timestamp():
