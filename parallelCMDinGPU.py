@@ -1,9 +1,10 @@
 import os.path
 import subprocess
 import time
+from .others import get_timestamp
 
 
-def parallel_in_multiple_gpus(commands_list, output_file_path_list=None, GPU_list=None):
+def parallel_in_multiple_gpus(commands_list, output_file_path_list=None, GPU_list=None, jobs_per_GPU=1):
     if output_file_path_list is None:
         output_file_path_list = [None for ele in commands_list]
 
@@ -12,18 +13,19 @@ def parallel_in_multiple_gpus(commands_list, output_file_path_list=None, GPU_lis
 
     GPU_tasks = {}
     for i in GPU_list:
-        GPU_tasks[i] = {
-            "opened_file": None,
-            "cmd": None,
-            "process": None
-        }
+        for j in range(0, jobs_per_GPU):
+            GPU_tasks[j * 10 + i] = {
+                "opened_file": None,
+                "cmd": None,
+                "process": None
+            }
     print("Start to spawn the process")
 
     continue_check = True
     while continue_check:
 
         running_task = 0
-        for gpu in GPU_list:
+        for gpu in GPU_tasks.keys():
             proc = GPU_tasks[gpu]["process"]
             add_new_task = False
             if proc is None:
@@ -45,9 +47,9 @@ def parallel_in_multiple_gpus(commands_list, output_file_path_list=None, GPU_lis
 
                     finished_cmd = GPU_tasks[gpu]["cmd"]
                     if return_code == 0:
-                        print("Done: {}".format(finished_cmd))
+                        print("{} Done: {}".format(get_timestamp(), finished_cmd))
                     else:
-                        print("MyError! {}".format(finished_cmd))
+                        print("{} MyError! {}".format(get_timestamp(), finished_cmd))
                     GPU_tasks[gpu]["cmd"] = None
 
             if add_new_task:
@@ -55,14 +57,17 @@ def parallel_in_multiple_gpus(commands_list, output_file_path_list=None, GPU_lis
                     cmd = commands_list.pop(0)
                     output_file_path = output_file_path_list.pop(0)
                     gpu_env = os.environ.copy()
-                    gpu_env["CUDA_VISIBLE_DEVICES"] = str(gpu)
+                    gpu_env["CUDA_VISIBLE_DEVICES"] = str(gpu % 10)
                     if output_file_path is not None:
                         f = open(output_file_path, 'w')
                         GPU_tasks[gpu]["opened_file"] = f
                         GPU_tasks[gpu]["process"] = subprocess.Popen(cmd, env=gpu_env, stdout=f, stderr=f)
+                        print("{} Start: {} at GPU {} to path {}".format(get_timestamp(), cmd, gpu % 10,
+                                                                         output_file_path))
                     else:
                         GPU_tasks[gpu]["opened_file"] = None
                         GPU_tasks[gpu]["process"] = subprocess.Popen(cmd, env=gpu_env)
+                        print("{} Start: {} at GPU {}".format(get_timestamp(), cmd, gpu % 10))
                     GPU_tasks[gpu]["cmd"] = " ".join(cmd)
                     running_task += 1
 
