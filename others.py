@@ -9,7 +9,7 @@ def create_folder(path, safe=True):
     else:
         print("Dirs: {} Exists".format(path))
         if safe:
-            assert False
+            assert False, "Dir exist: {}".format(path)
 
 
 def get_timestamp():
