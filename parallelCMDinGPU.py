@@ -2,6 +2,15 @@ import os.path
 import subprocess
 import time
 from .others import get_timestamp
+import argparse
+
+
+def get_parser():
+    parser = argparse.ArgumentParser("Run multiple jobs in multiple GPUs")
+    parser.add_argument('-g', '--gpus', help="gpus to run the jobs", nargs='+', type=int)
+    parser.add_argument('-j', '--job_per_gpu', help="jobs per gpu", type=int, default=1)
+
+    return parser
 
 
 def parallel_in_multiple_gpus(commands_list, output_file_path_list=None, GPU_list=None, jobs_per_GPU=1):
@@ -107,4 +116,7 @@ def test_parallel_in_multiple_gpus():
 
 if __name__ == '__main__':
     print("test parallel_in_multiple_gpus")
-    test_parallel_in_multiple_gpus()
+    # test_parallel_in_multiple_gpus()
+
+    args = get_parser().parse_args()
+    print(args)
