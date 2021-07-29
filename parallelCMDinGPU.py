@@ -73,10 +73,13 @@ def parallel_in_multiple_gpus(commands_list, output_file_path_list=None, GPU_lis
                         GPU_tasks[gpu]["process"] = subprocess.Popen(cmd, env=gpu_env, stdout=f, stderr=f)
                         print("{} Start: {} at GPU {} to path {}".format(get_timestamp(), cmd, gpu % 10,
                                                                          output_file_path))
+                        print("{} TODO: {}".format(get_timestamp(), len(commands_list)))
                     else:
                         GPU_tasks[gpu]["opened_file"] = None
                         GPU_tasks[gpu]["process"] = subprocess.Popen(cmd, env=gpu_env)
                         print("{} Start: {} at GPU {}".format(get_timestamp(), cmd, gpu % 10))
+                        print("{} TODO: {}".format(get_timestamp(), len(commands_list)))
+
                     GPU_tasks[gpu]["cmd"] = " ".join(cmd)
                     running_task += 1
 
