@@ -3,6 +3,7 @@ import subprocess
 import time
 from .others import get_timestamp
 import argparse
+from typing import List, Callable, Union
 
 
 def get_parser():
@@ -13,7 +14,10 @@ def get_parser():
     return parser
 
 
-def parallel_in_multiple_gpus(commands_list, output_file_path_list=None, GPU_list=None, jobs_per_GPU=1):
+def parallel_in_multiple_gpus(commands_list, output_file_path_list=None, GPU_list=None, jobs_per_GPU=1, 
+                              task_start_hook: Union[Callable[[List[str], int], None], None]=None, 
+                              task_finish_hook: Union[Callable[[List[str], int], None], None]=None, 
+                              task_error_hook: Union[Callable[[List[str], int, int], None], None]=None):
     if output_file_path_list is None:
         output_file_path_list = [None for ele in commands_list]
 
@@ -57,8 +61,16 @@ def parallel_in_multiple_gpus(commands_list, output_file_path_list=None, GPU_lis
                     finished_cmd = GPU_tasks[gpu]["cmd"]
                     if return_code == 0:
                         print("{} Done: {}".format(get_timestamp(), finished_cmd))
+                        try:
+                            if task_finish_hook is not None: task_finish_hook(finished_cmd, gpu % 10)
+                        except Exception as e: 
+                            print("task_finish_hook exception:", e)
                     else:
                         print("{} MyError! {}".format(get_timestamp(), finished_cmd))
+                        try:
+                            if task_error_hook is not None: task_error_hook(finished_cmd, gpu % 10, return_code)
+                        except Exception as e: 
+                            print("task_error_hook exception:", e)
                     GPU_tasks[gpu]["cmd"] = None
 
             if add_new_task:
@@ -80,6 +92,11 @@ def parallel_in_multiple_gpus(commands_list, output_file_path_list=None, GPU_lis
                         print("{} Start: {} at GPU {}".format(get_timestamp(), cmd, gpu % 10))
                         print("{} TODO: {}".format(get_timestamp(), len(commands_list)))
 
+                    try:
+                        if task_start_hook is not None: task_start_hook(cmd, gpu_env["CUDA_VISIBLE_DEVICES"])
+                    except Exception as e: 
+                        print("task_start_hook exception:", e)
+                    
                     GPU_tasks[gpu]["cmd"] = " ".join(cmd)
                     running_task += 1
 
