@@ -93,7 +93,7 @@ def parallel_in_multiple_gpus(commands_list, output_file_path_list=None, GPU_lis
                         print("{} TODO: {}".format(get_timestamp(), len(commands_list)))
 
                     try:
-                        if task_start_hook is not None: task_start_hook(cmd, gpu_env["CUDA_VISIBLE_DEVICES"])
+                        if task_start_hook is not None: task_start_hook(cmd, gpu % 10)
                     except Exception as e: 
                         print("task_start_hook exception:", e)
                     
